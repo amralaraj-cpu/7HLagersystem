@@ -1,0 +1,160 @@
+{
+  "name": "Tire",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "Auto-generated product ID"
+    },
+    "set_id": {
+      "type": "string",
+      "description": "Reference to TireSet if part of a set"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "complete_wheel",
+        "tire_only",
+        "rim_only"
+      ],
+      "description": "Product type"
+    },
+    "brand": {
+      "type": "string",
+      "description": "Tire/rim brand"
+    },
+    "tire_dimension": {
+      "type": "string",
+      "description": "Tire dimension e.g. 215/55R16"
+    },
+    "rim_size": {
+      "type": "number",
+      "description": "Rim size in inches"
+    },
+    "bolt_pattern": {
+      "type": "string",
+      "description": "PCD e.g. 5x112mm"
+    },
+    "center_bore": {
+      "type": "number",
+      "description": "Hub diameter in mm"
+    },
+    "offset": {
+      "type": "number",
+      "description": "ET offset"
+    },
+    "season": {
+      "type": "string",
+      "enum": [
+        "summer",
+        "winter",
+        "all_season",
+        "ms"
+      ],
+      "description": "Season type"
+    },
+    "studded": {
+      "type": "boolean",
+      "description": "Whether tire is studded"
+    },
+    "manufacturing_year": {
+      "type": "number",
+      "description": "Manufacturing year"
+    },
+    "manufacturing_week": {
+      "type": "number",
+      "description": "Manufacturing week"
+    },
+    "tread_depth": {
+      "type": "number",
+      "description": "Tread depth in mm"
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "new",
+        "used_excellent",
+        "used_good",
+        "used_fair",
+        "used_poor"
+      ],
+      "description": "Tire condition"
+    },
+    "rim_condition": {
+      "type": "string",
+      "enum": [
+        "new",
+        "excellent",
+        "good",
+        "fair",
+        "scratched",
+        "poor"
+      ],
+      "description": "Rim condition if applicable"
+    },
+    "purchase_price": {
+      "type": "number",
+      "description": "Purchase price per tire in SEK"
+    },
+    "selling_price": {
+      "type": "number",
+      "description": "Selling price per tire in SEK"
+    },
+    "position_in_set": {
+      "type": "number",
+      "description": "Position number in set"
+    },
+    "total_in_set": {
+      "type": "number",
+      "description": "Total tires in set"
+    },
+    "warehouse_position": {
+      "type": "string",
+      "description": "Location code e.g. A-03-05-4"
+    },
+    "suitable_vehicles": {
+      "type": "string",
+      "description": "Suitable vehicle brands/models"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "reserved",
+        "sold"
+      ],
+      "default": "available"
+    },
+    "blocket_listed": {
+      "type": "boolean",
+      "default": false
+    },
+    "blocket_url": {
+      "type": "string"
+    },
+    "blocket_listed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "photo_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "qr_code": {
+      "type": "string",
+      "description": "QR code data"
+    }
+  },
+  "required": [
+    "type",
+    "brand",
+    "warehouse_position",
+    "status"
+  ]
+}
