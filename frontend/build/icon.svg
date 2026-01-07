@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#2563eb" rx="64"/>
+
+  <!-- Tire illustration -->
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#ffffff" stroke-width="24"/>
+  <circle cx="256" cy="256" r="100" fill="none" stroke="#ffffff" stroke-width="16"/>
+  <circle cx="256" cy="256" r="60" fill="none" stroke="#ffffff" stroke-width="12"/>
+
+  <!-- Center hub -->
+  <circle cx="256" cy="256" r="30" fill="#ffffff"/>
+
+  <!-- Spokes -->
+  <line x1="256" y1="196" x2="256" y2="316" stroke="#ffffff" stroke-width="8"/>
+  <line x1="196" y1="256" x2="316" y2="256" stroke="#ffffff" stroke-width="8"/>
+  <line x1="214" y1="214" x2="298" y2="298" stroke="#ffffff" stroke-width="8"/>
+  <line x1="298" y1="214" x2="214" y2="298" stroke="#ffffff" stroke-width="8"/>
+
+  <!-- 7H text -->
+  <text x="256" y="440" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#ffffff" text-anchor="middle">7H</text>
+</svg>
