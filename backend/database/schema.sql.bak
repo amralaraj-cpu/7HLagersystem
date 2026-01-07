@@ -21,7 +21,7 @@ CREATE TABLE users (
 -- Password reset tokens
 CREATE TABLE password_reset_tokens (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token VARCHAR(255) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     used BOOLEAN DEFAULT false,
@@ -44,39 +44,21 @@ CREATE TABLE warehouse_locations (
     CONSTRAINT unique_location UNIQUE (aisle, level, unit, position, is_customer_storage)
 );
 
--- Sets (flexible quantity) - MUST BE BEFORE inventory_items
-CREATE TABLE sets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    set_number VARCHAR(50) UNIQUE NOT NULL,
-    set_type VARCHAR(20) DEFAULT 'sales' CHECK (set_type IN ('sales', 'customer')),
-    product_type VARCHAR(20) NOT NULL,
-    tire_brand VARCHAR(100),
-    tire_model VARCHAR(100),
-    tire_dimension VARCHAR(50),
-    tire_season VARCHAR(20),
-    rim_brand VARCHAR(100),
-    rim_diameter DECIMAL(4,1),
-    bolt_pattern VARCHAR(50),
-    total_quantity INTEGER NOT NULL,
-    remaining_quantity INTEGER NOT NULL,
-    price_per_item DECIMAL(10,2),
-    total_value DECIMAL(10,2),
-    status VARCHAR(20) DEFAULT 'complete' CHECK (status IN ('complete', 'partial', 'sold')),
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID REFERENCES users(id)
-);
-
 -- Inventory items (tires, rims, complete wheels)
 CREATE TABLE inventory_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     product_id VARCHAR(50) UNIQUE NOT NULL,
     set_id UUID REFERENCES sets(id) ON DELETE SET NULL,
     position_in_set INTEGER,
+
+    -- Product type
     product_type VARCHAR(20) NOT NULL CHECK (product_type IN ('complete', 'tire_only', 'rim_only')),
+
+    -- Location
     location_id UUID REFERENCES warehouse_locations(id),
     location_code VARCHAR(20),
+
+    -- Tire specifications
     tire_brand VARCHAR(100),
     tire_model VARCHAR(100),
     tire_dimension VARCHAR(50),
@@ -89,6 +71,8 @@ CREATE TABLE inventory_items (
     dot_number VARCHAR(50),
     load_index INTEGER,
     speed_rating VARCHAR(5),
+
+    -- Rim specifications
     rim_brand VARCHAR(100),
     rim_diameter DECIMAL(4,1),
     rim_width VARCHAR(10),
@@ -96,35 +80,89 @@ CREATE TABLE inventory_items (
     center_bore DECIMAL(5,2),
     rim_offset VARCHAR(10),
     rim_color VARCHAR(50),
+
+    -- Condition
     tire_condition VARCHAR(20),
     rim_condition VARCHAR(20),
+
+    -- Pricing
     purchase_price DECIMAL(10,2),
     selling_price DECIMAL(10,2),
+
+    -- Additional info
     suitable_for TEXT,
     notes TEXT,
-    photos TEXT[],
+    photos TEXT[], -- Array of photo URLs
+
+    -- Status
     status VARCHAR(20) DEFAULT 'available' CHECK (status IN ('available', 'sold', 'reserved')),
+
+    -- Metadata
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID REFERENCES users(id),
     updated_by UUID REFERENCES users(id)
 );
 
+-- Sets (flexible quantity)
+CREATE TABLE sets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    set_number VARCHAR(50) UNIQUE NOT NULL,
+    set_type VARCHAR(20) DEFAULT 'sales' CHECK (set_type IN ('sales', 'customer')),
+
+    -- Set specifications (applies to all items)
+    product_type VARCHAR(20) NOT NULL,
+    tire_brand VARCHAR(100),
+    tire_model VARCHAR(100),
+    tire_dimension VARCHAR(50),
+    tire_season VARCHAR(20),
+    rim_brand VARCHAR(100),
+    rim_diameter DECIMAL(4,1),
+    bolt_pattern VARCHAR(50),
+
+    -- Quantity
+    total_quantity INTEGER NOT NULL,
+    remaining_quantity INTEGER NOT NULL,
+
+    -- Pricing
+    price_per_item DECIMAL(10,2),
+    total_value DECIMAL(10,2),
+
+    -- Status
+    status VARCHAR(20) DEFAULT 'complete' CHECK (status IN ('complete', 'partial', 'sold')),
+
+    -- Metadata
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES users(id)
+);
+
 -- Customers
 CREATE TABLE customers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     customer_id VARCHAR(50) UNIQUE NOT NULL,
+
+    -- Personal information
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     email VARCHAR(255),
+
+    -- Vehicle information
     vehicle_reg_number VARCHAR(20),
     vehicle_brand VARCHAR(50),
     vehicle_model VARCHAR(50),
+
+    -- Customer type
     customer_type VARCHAR(20) DEFAULT 'private' CHECK (customer_type IN ('private', 'company')),
     company_name VARCHAR(200),
     organization_number VARCHAR(20),
+
+    -- Address
     address TEXT,
+
+    -- Metadata
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -137,23 +175,37 @@ CREATE TABLE tire_hotel_storage (
     storage_id VARCHAR(50) UNIQUE NOT NULL,
     customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
     set_id UUID REFERENCES sets(id),
+
+    -- Tire information
     quantity INTEGER NOT NULL,
     tire_brand VARCHAR(100),
     tire_model VARCHAR(100),
     tire_dimension VARCHAR(50),
     tire_season VARCHAR(20),
+
+    -- Rim information
     has_rims BOOLEAN DEFAULT false,
     rim_type VARCHAR(20) CHECK (rim_type IN ('steel', 'alloy')),
+
+    -- Storage details
     storage_start_date DATE NOT NULL,
     storage_end_date DATE,
     storage_fee DECIMAL(10,2),
+
+    -- Payment
     payment_status VARCHAR(20) DEFAULT 'unpaid' CHECK (payment_status IN ('paid', 'unpaid', 'partially_paid')),
     payment_date DATE,
     payment_method VARCHAR(50),
     invoice_number VARCHAR(50),
+
+    -- Documentation
     condition_on_arrival TEXT,
     photos TEXT[],
+
+    -- Status
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'ended')),
+
+    -- Metadata
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -166,23 +218,35 @@ CREATE TABLE sales_orders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     order_id VARCHAR(50) UNIQUE NOT NULL,
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Customer information
     customer_id UUID REFERENCES customers(id),
     customer_name VARCHAR(200),
     customer_phone VARCHAR(20),
     customer_email VARCHAR(255),
     customer_address TEXT,
+
+    -- Order totals
     subtotal DECIMAL(10,2) NOT NULL,
     discount_amount DECIMAL(10,2) DEFAULT 0,
     discount_percent DECIMAL(5,2) DEFAULT 0,
     vat_amount DECIMAL(10,2) NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
+
+    -- Payment
     payment_method VARCHAR(50),
     payment_status VARCHAR(20) DEFAULT 'unpaid' CHECK (payment_status IN ('paid', 'unpaid', 'partially_paid')),
     payment_date TIMESTAMP,
+
+    -- Delivery
     delivery_method VARCHAR(20) CHECK (delivery_method IN ('pickup', 'shipping')),
     shipping_address TEXT,
+
+    -- Order status
     order_status VARCHAR(20) DEFAULT 'pending' CHECK (order_status IN ('pending', 'completed', 'cancelled')),
     sales_channel VARCHAR(50),
+
+    -- Metadata
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -195,10 +259,13 @@ CREATE TABLE sales_order_items (
     order_id UUID NOT NULL REFERENCES sales_orders(id) ON DELETE CASCADE,
     inventory_item_id UUID REFERENCES inventory_items(id),
     set_id UUID REFERENCES sets(id),
+
+    -- Item details
     description TEXT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
     unit_price DECIMAL(10,2) NOT NULL,
     line_total DECIMAL(10,2) NOT NULL,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -207,19 +274,31 @@ CREATE TABLE invoices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     invoice_number VARCHAR(50) UNIQUE NOT NULL,
     order_id UUID REFERENCES sales_orders(id),
+
+    -- Invoice details
     invoice_date DATE NOT NULL,
     due_date DATE NOT NULL,
+
+    -- Customer details
     customer_name VARCHAR(200) NOT NULL,
     customer_address TEXT,
     customer_email VARCHAR(255),
     customer_phone VARCHAR(20),
+
+    -- Amounts
     subtotal DECIMAL(10,2) NOT NULL,
     vat_amount DECIMAL(10,2) NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
+
+    -- Payment
     payment_reference VARCHAR(100),
     payment_status VARCHAR(20) DEFAULT 'unpaid',
     paid_date DATE,
+
+    -- Invoice file
     pdf_url VARCHAR(500),
+
+    -- Metadata
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID REFERENCES users(id)
 );
