@@ -198,7 +198,23 @@ npm test
 
 ## Deployment
 
-### Production Build
+### 🌐 Deploy Online (Free)
+
+The easiest way to test the application is to deploy it online:
+
+**📘 Render.com (Recommended):** See [DEPLOY_TO_RENDER.md](./DEPLOY_TO_RENDER.md)
+- Free PostgreSQL included
+- 10-minute setup
+- SSL certificate included
+
+**📗 Railway.app (Fastest):** See [DEPLOY_QUICK_GUIDE.md](./DEPLOY_QUICK_GUIDE.md)
+- Auto-detects configuration
+- 5-minute setup
+- $5/month free credit
+
+**🎯 Quick Comparison:** [DEPLOY_QUICK_GUIDE.md](./DEPLOY_QUICK_GUIDE.md)
+
+### Production Build (Self-Hosted)
 ```bash
 # Frontend
 cd frontend
