@@ -136,6 +136,16 @@ const translations = {
     sellingPrice: 'Selling Price',
     productId: 'Product ID',
     addItem: 'Add Item',
+
+    // QR Code & Labels
+    qrCode: 'QR Code',
+    printLabel: 'Print Label',
+    labelSize: 'Label Size',
+    small: 'Small',
+    medium: 'Medium',
+    large: 'Large',
+    export: 'Export',
+    print: 'Print',
   },
   sv: {
     // Navigation
@@ -270,6 +280,16 @@ const translations = {
     sellingPrice: 'Försäljningspris',
     productId: 'Produkt-ID',
     addItem: 'Lägg till artikel',
+
+    // QR Code & Labels
+    qrCode: 'QR-kod',
+    printLabel: 'Skriv ut etikett',
+    labelSize: 'Etikettstorlek',
+    small: 'Liten',
+    medium: 'Mellan',
+    large: 'Stor',
+    export: 'Exportera',
+    print: 'Skriv ut',
   },
 };
 

@@ -1,76 +1,136 @@
-import React from 'react';
-import { QRCodeSVG } from 'qrcode.react';
+import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Printer, Download } from 'lucide-react';
 import { useLanguage } from './LanguageContext';
+import QRCode from 'qrcode';
 
-export default function QRCodeGenerator({ isOpen, onClose, data, title, subtitle }) {
-  const { language } = useLanguage();
+export default function QRCodeGenerator({
+  isOpen,
+  onClose,
+  data,
+  title,
+  subtitle
+}) {
+  const { t } = useLanguage();
+  const canvasRef = useRef(null);
+  const [size, setSize] = React.useState('medium');
 
-  if (!data) return null;
+  const sizes = {
+    small: 150,
+    medium: 200,
+    large: 300
+  };
 
-  const qrValue = typeof data === 'string' ? data : JSON.stringify(data);
+  useEffect(() => {
+    if (isOpen && data && canvasRef.current) {
+      generateQRCode();
+    }
+  }, [isOpen, data, size]);
+
+  const generateQRCode = async () => {
+    const canvas = canvasRef.current;
+    const qrSize = sizes[size];
+
+    const qrData = JSON.stringify(data);
+
+    await QRCode.toCanvas(canvas, qrData, {
+      width: qrSize,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+  };
 
   const handleDownload = () => {
-    const svg = document.getElementById('qr-code-svg');
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
+    const canvas = canvasRef.current;
+    const link = document.createElement('a');
+    const fileName = title?.includes('SET-') ? `${title.split(' ')[0]}_QR.png` : `${title || 'code'}_QR.png`;
+    link.download = fileName;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
 
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      const pngFile = canvas.toDataURL('image/png');
-
-      const downloadLink = document.createElement('a');
-      downloadLink.download = `QR_${title || 'code'}.png`;
-      downloadLink.href = pngFile;
-      downloadLink.click();
-    };
-
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+  const handlePrint = () => {
+    const canvas = canvasRef.current;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${t('printLabel')}</title>
+          <style>
+            body {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              font-family: system-ui, sans-serif;
+            }
+            img { margin-bottom: 10px; }
+            .title { font-weight: bold; font-size: 14px; }
+            .subtitle { color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <img src="${canvas.toDataURL('image/png')}" />
+          <div class="title">${title || ''}</div>
+          <div class="subtitle">${subtitle || ''}</div>
+          <script>window.onload = () => { window.print(); window.close(); }</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {language === 'sv' ? 'QR-kod' : 'QR Code'}
-          </DialogTitle>
+          <DialogTitle>{t('qrCode')}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col items-center py-6">
+        <div className="flex flex-col items-center space-y-4 py-4">
+          <canvas
+            ref={canvasRef}
+            className="border border-gray-200 rounded-lg"
+          />
+
           {title && (
-            <h3 className="text-lg font-semibold mb-2 text-center">{title}</h3>
-          )}
-          {subtitle && (
-            <p className="text-sm text-gray-500 mb-6 text-center">{subtitle}</p>
+            <div className="text-center">
+              <p className="font-semibold text-gray-900">{title}</p>
+              {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+            </div>
           )}
 
-          <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-            <QRCodeSVG
-              id="qr-code-svg"
-              value={qrValue}
-              size={256}
-              level="H"
-              includeMargin={true}
-            />
+          <div className="flex items-center gap-2 w-full">
+            <span className="text-sm text-gray-500">{t('labelSize')}:</span>
+            <Select value={size} onValueChange={setSize}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="small">{t('small')}</SelectItem>
+                <SelectItem value="medium">{t('medium')}</SelectItem>
+                <SelectItem value="large">{t('large')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex gap-2 w-full">
+            <Button onClick={handleDownload} variant="outline" className="flex-1">
+              <Download className="w-4 h-4 mr-2" />
+              {t('export')}
+            </Button>
+            <Button onClick={handlePrint} className="flex-1 bg-blue-600 hover:bg-blue-700">
+              <Printer className="w-4 h-4 mr-2" />
+              {t('print')}
+            </Button>
           </div>
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            {language === 'sv' ? 'Stäng' : 'Close'}
-          </Button>
-          <Button onClick={handleDownload} className="bg-blue-600 hover:bg-blue-700">
-            <Download className="w-4 h-4 mr-2" />
-            {language === 'sv' ? 'Ladda ner' : 'Download'}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
