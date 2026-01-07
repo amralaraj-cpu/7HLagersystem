@@ -21,18 +21,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from './ui/dropdown-menu';
-import useAuthStore from '../store/authStore';
-import { cn } from '@/lib/utils';
+import { base44 } from '../api/apiClient';
+import { cn } from '../lib/utils';
 
 const Layout = () => {
-  const { user, logout } = useAuthStore();
   const { language, changeLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
-    logout();
+    base44.auth.logout();
     navigate('/login');
   };
 
@@ -98,14 +97,14 @@ const Layout = () => {
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                 <span className="text-blue-600 font-semibold text-sm">
-                  {user?.first_name?.[0]}{user?.last_name?.[0]}
+                  7H
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.first_name} {user?.last_name}
+                  7HLager
                 </p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <p className="text-xs text-gray-500 truncate">{import.meta.env.VITE_COMPANY_NAME}</p>
               </div>
             </div>
 
