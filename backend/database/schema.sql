@@ -1,0 +1,370 @@
+-- 7HLager Database Schema
+-- PostgreSQL Database for Tire & Wheel Inventory Management System
+
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Users table
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'user')),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP
+);
+
+-- Password reset tokens
+CREATE TABLE password_reset_tokens (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Warehouse locations (18,200 total positions)
+CREATE TABLE warehouse_locations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    location_code VARCHAR(20) UNIQUE NOT NULL,
+    aisle CHAR(1) NOT NULL CHECK (aisle >= 'A' AND aisle <= 'Z'),
+    level INTEGER NOT NULL CHECK (level >= 1 AND level <= 10),
+    unit INTEGER NOT NULL CHECK (unit >= 1 AND unit <= 10),
+    position INTEGER NOT NULL CHECK (position >= 1 AND position <= 7),
+    is_customer_storage BOOLEAN DEFAULT false,
+    is_occupied BOOLEAN DEFAULT false,
+    occupied_by_item_id UUID,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_location UNIQUE (aisle, level, unit, position, is_customer_storage)
+);
+
+-- Inventory items (tires, rims, complete wheels)
+CREATE TABLE inventory_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    product_id VARCHAR(50) UNIQUE NOT NULL,
+    set_id UUID REFERENCES sets(id) ON DELETE SET NULL,
+    position_in_set INTEGER,
+
+    -- Product type
+    product_type VARCHAR(20) NOT NULL CHECK (product_type IN ('complete', 'tire_only', 'rim_only')),
+
+    -- Location
+    location_id UUID REFERENCES warehouse_locations(id),
+    location_code VARCHAR(20),
+
+    -- Tire specifications
+    tire_brand VARCHAR(100),
+    tire_model VARCHAR(100),
+    tire_dimension VARCHAR(50),
+    tire_season VARCHAR(20) CHECK (tire_season IN ('summer', 'winter', 'all_season')),
+    is_studded BOOLEAN DEFAULT false,
+    has_ms_marking BOOLEAN DEFAULT false,
+    manufacturing_year INTEGER,
+    manufacturing_week INTEGER,
+    tread_depth DECIMAL(4,2),
+    dot_number VARCHAR(50),
+    load_index INTEGER,
+    speed_rating VARCHAR(5),
+
+    -- Rim specifications
+    rim_brand VARCHAR(100),
+    rim_diameter DECIMAL(4,1),
+    rim_width VARCHAR(10),
+    bolt_pattern VARCHAR(50),
+    center_bore DECIMAL(5,2),
+    offset VARCHAR(10),
+    rim_color VARCHAR(50),
+
+    -- Condition
+    tire_condition VARCHAR(20),
+    rim_condition VARCHAR(20),
+
+    -- Pricing
+    purchase_price DECIMAL(10,2),
+    selling_price DECIMAL(10,2),
+
+    -- Additional info
+    suitable_for TEXT,
+    notes TEXT,
+    photos TEXT[], -- Array of photo URLs
+
+    -- Status
+    status VARCHAR(20) DEFAULT 'available' CHECK (status IN ('available', 'sold', 'reserved')),
+
+    -- Metadata
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES users(id),
+    updated_by UUID REFERENCES users(id)
+);
+
+-- Sets (flexible quantity)
+CREATE TABLE sets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    set_number VARCHAR(50) UNIQUE NOT NULL,
+    set_type VARCHAR(20) DEFAULT 'sales' CHECK (set_type IN ('sales', 'customer')),
+
+    -- Set specifications (applies to all items)
+    product_type VARCHAR(20) NOT NULL,
+    tire_brand VARCHAR(100),
+    tire_model VARCHAR(100),
+    tire_dimension VARCHAR(50),
+    tire_season VARCHAR(20),
+    rim_brand VARCHAR(100),
+    rim_diameter DECIMAL(4,1),
+    bolt_pattern VARCHAR(50),
+
+    -- Quantity
+    total_quantity INTEGER NOT NULL,
+    remaining_quantity INTEGER NOT NULL,
+
+    -- Pricing
+    price_per_item DECIMAL(10,2),
+    total_value DECIMAL(10,2),
+
+    -- Status
+    status VARCHAR(20) DEFAULT 'complete' CHECK (status IN ('complete', 'partial', 'sold')),
+
+    -- Metadata
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES users(id)
+);
+
+-- Customers
+CREATE TABLE customers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id VARCHAR(50) UNIQUE NOT NULL,
+
+    -- Personal information
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(255),
+
+    -- Vehicle information
+    vehicle_reg_number VARCHAR(20),
+    vehicle_brand VARCHAR(50),
+    vehicle_model VARCHAR(50),
+
+    -- Customer type
+    customer_type VARCHAR(20) DEFAULT 'private' CHECK (customer_type IN ('private', 'company')),
+    company_name VARCHAR(200),
+    organization_number VARCHAR(20),
+
+    -- Address
+    address TEXT,
+
+    -- Metadata
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_service_date TIMESTAMP
+);
+
+-- Tire hotel storage
+CREATE TABLE tire_hotel_storage (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    storage_id VARCHAR(50) UNIQUE NOT NULL,
+    customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
+    set_id UUID REFERENCES sets(id),
+
+    -- Tire information
+    quantity INTEGER NOT NULL,
+    tire_brand VARCHAR(100),
+    tire_model VARCHAR(100),
+    tire_dimension VARCHAR(50),
+    tire_season VARCHAR(20),
+
+    -- Rim information
+    has_rims BOOLEAN DEFAULT false,
+    rim_type VARCHAR(20) CHECK (rim_type IN ('steel', 'alloy')),
+
+    -- Storage details
+    storage_start_date DATE NOT NULL,
+    storage_end_date DATE,
+    storage_fee DECIMAL(10,2),
+
+    -- Payment
+    payment_status VARCHAR(20) DEFAULT 'unpaid' CHECK (payment_status IN ('paid', 'unpaid', 'partially_paid')),
+    payment_date DATE,
+    payment_method VARCHAR(50),
+    invoice_number VARCHAR(50),
+
+    -- Documentation
+    condition_on_arrival TEXT,
+    photos TEXT[],
+
+    -- Status
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'ended')),
+
+    -- Metadata
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    checked_out_at TIMESTAMP,
+    checked_out_by UUID REFERENCES users(id)
+);
+
+-- Sales orders
+CREATE TABLE sales_orders (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_id VARCHAR(50) UNIQUE NOT NULL,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Customer information
+    customer_id UUID REFERENCES customers(id),
+    customer_name VARCHAR(200),
+    customer_phone VARCHAR(20),
+    customer_email VARCHAR(255),
+    customer_address TEXT,
+
+    -- Order totals
+    subtotal DECIMAL(10,2) NOT NULL,
+    discount_amount DECIMAL(10,2) DEFAULT 0,
+    discount_percent DECIMAL(5,2) DEFAULT 0,
+    vat_amount DECIMAL(10,2) NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+
+    -- Payment
+    payment_method VARCHAR(50),
+    payment_status VARCHAR(20) DEFAULT 'unpaid' CHECK (payment_status IN ('paid', 'unpaid', 'partially_paid')),
+    payment_date TIMESTAMP,
+
+    -- Delivery
+    delivery_method VARCHAR(20) CHECK (delivery_method IN ('pickup', 'shipping')),
+    shipping_address TEXT,
+
+    -- Order status
+    order_status VARCHAR(20) DEFAULT 'pending' CHECK (order_status IN ('pending', 'completed', 'cancelled')),
+    sales_channel VARCHAR(50),
+
+    -- Metadata
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES users(id)
+);
+
+-- Sales order items
+CREATE TABLE sales_order_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_id UUID NOT NULL REFERENCES sales_orders(id) ON DELETE CASCADE,
+    inventory_item_id UUID REFERENCES inventory_items(id),
+    set_id UUID REFERENCES sets(id),
+
+    -- Item details
+    description TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    unit_price DECIMAL(10,2) NOT NULL,
+    line_total DECIMAL(10,2) NOT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Invoices
+CREATE TABLE invoices (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    invoice_number VARCHAR(50) UNIQUE NOT NULL,
+    order_id UUID REFERENCES sales_orders(id),
+
+    -- Invoice details
+    invoice_date DATE NOT NULL,
+    due_date DATE NOT NULL,
+
+    -- Customer details
+    customer_name VARCHAR(200) NOT NULL,
+    customer_address TEXT,
+    customer_email VARCHAR(255),
+    customer_phone VARCHAR(20),
+
+    -- Amounts
+    subtotal DECIMAL(10,2) NOT NULL,
+    vat_amount DECIMAL(10,2) NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+
+    -- Payment
+    payment_reference VARCHAR(100),
+    payment_status VARCHAR(20) DEFAULT 'unpaid',
+    paid_date DATE,
+
+    -- Invoice file
+    pdf_url VARCHAR(500),
+
+    -- Metadata
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES users(id)
+);
+
+-- Audit log
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id),
+    action VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id UUID,
+    old_values JSONB,
+    new_values JSONB,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes for performance
+CREATE INDEX idx_inventory_location ON inventory_items(location_code);
+CREATE INDEX idx_inventory_status ON inventory_items(status);
+CREATE INDEX idx_inventory_set ON inventory_items(set_id);
+CREATE INDEX idx_inventory_product_id ON inventory_items(product_id);
+CREATE INDEX idx_sets_number ON sets(set_number);
+CREATE INDEX idx_sets_status ON sets(status);
+CREATE INDEX idx_customers_phone ON customers(phone);
+CREATE INDEX idx_customers_email ON customers(email);
+CREATE INDEX idx_customers_reg ON customers(vehicle_reg_number);
+CREATE INDEX idx_tire_hotel_customer ON tire_hotel_storage(customer_id);
+CREATE INDEX idx_tire_hotel_status ON tire_hotel_storage(status);
+CREATE INDEX idx_sales_order_id ON sales_orders(order_id);
+CREATE INDEX idx_sales_date ON sales_orders(order_date);
+CREATE INDEX idx_sales_customer ON sales_orders(customer_id);
+CREATE INDEX idx_invoice_number ON invoices(invoice_number);
+CREATE INDEX idx_audit_user ON audit_logs(user_id);
+CREATE INDEX idx_audit_created ON audit_logs(created_at);
+CREATE INDEX idx_warehouse_location ON warehouse_locations(location_code);
+CREATE INDEX idx_warehouse_occupied ON warehouse_locations(is_occupied);
+
+-- Create updated_at trigger function
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create triggers for updated_at
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_inventory_items_updated_at BEFORE UPDATE ON inventory_items
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_sets_updated_at BEFORE UPDATE ON sets
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON customers
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_tire_hotel_updated_at BEFORE UPDATE ON tire_hotel_storage
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_sales_orders_updated_at BEFORE UPDATE ON sales_orders
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_warehouse_locations_updated_at BEFORE UPDATE ON warehouse_locations
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
