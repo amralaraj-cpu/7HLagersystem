@@ -1,0 +1,53 @@
+{
+  "name": "WarehousePosition",
+  "type": "object",
+  "properties": {
+    "position_code": {
+      "type": "string",
+      "description": "Location code e.g. A-03-05-4 or C-A-03-05-4"
+    },
+    "aisle": {
+      "type": "string",
+      "description": "Aisle letter A-Z"
+    },
+    "level": {
+      "type": "number",
+      "description": "Level 01-10"
+    },
+    "unit": {
+      "type": "number",
+      "description": "Unit 01-10"
+    },
+    "position": {
+      "type": "number",
+      "description": "Position 1-7"
+    },
+    "is_customer_storage": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if C- prefix (customer storage)"
+    },
+    "is_occupied": {
+      "type": "boolean",
+      "default": false
+    },
+    "tire_id": {
+      "type": "string",
+      "description": "ID of tire stored here"
+    },
+    "customer_tire_id": {
+      "type": "string",
+      "description": "ID of customer tire stored here"
+    },
+    "qr_code": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "position_code",
+    "aisle",
+    "level",
+    "unit",
+    "position"
+  ]
+}
