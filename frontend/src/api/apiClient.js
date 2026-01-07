@@ -1,20 +1,20 @@
-// API Client that mimics base44 structure but uses 7HLager backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// API Client for base44.com backend
+const BASE44_APP_ID = '695d0c9f78f4807eec0ee22e';
+const API_BASE_URL = `https://app.base44.com/api/apps/${BASE44_APP_ID}`;
 
-// Helper to get auth token
-const getToken = () => localStorage.getItem('token');
+// Helper to get API key (you can get this from User.me() or store in env)
+const getApiKey = () => {
+  return localStorage.getItem('base44_api_key') || import.meta.env.VITE_BASE44_API_KEY;
+};
 
-// Helper to make authenticated requests
+// Helper to make authenticated requests to base44
 async function apiRequest(endpoint, options = {}) {
-  const token = getToken();
+  const apiKey = getApiKey();
   const headers = {
     'Content-Type': 'application/json',
+    'api_key': apiKey,
     ...options.headers,
   };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
@@ -22,23 +22,24 @@ async function apiRequest(endpoint, options = {}) {
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      // Unauthorized - clear token and redirect to login
-      localStorage.removeItem('token');
+    if (response.status === 401 || response.status === 403) {
+      // Unauthorized - clear API key and redirect to login
+      localStorage.removeItem('base44_api_key');
       window.location.href = '/login';
     }
-    throw new Error(`API Error: ${response.statusText}`);
+    const error = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(error.message || `API Error: ${response.statusText}`);
   }
 
   return response.json();
 }
 
-// Create entity API with base44-like methods
+// Create entity API with base44 methods
 function createEntityAPI(entityName) {
-  const endpoint = `/${entityName.toLowerCase()}s`;
+  const endpoint = `/entities/${entityName}`;
 
   return {
-    // List all or with sorting
+    // List all entities
     async list(sort = '', limit = 500) {
       let url = endpoint;
       const params = new URLSearchParams();
@@ -48,12 +49,14 @@ function createEntityAPI(entityName) {
       return apiRequest(url);
     },
 
-    // Filter with conditions
+    // Filter entities with conditions
     async filter(conditions = {}, sort = '', limit = 500) {
       let url = endpoint;
       const params = new URLSearchParams();
       Object.entries(conditions).forEach(([key, value]) => {
-        params.append(key, value);
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value);
+        }
       });
       if (limit) params.append('limit', limit);
       if (sort) params.append('sort', sort);
@@ -61,7 +64,7 @@ function createEntityAPI(entityName) {
       return apiRequest(url);
     },
 
-    // Get single entity
+    // Get single entity by ID
     async get(id) {
       return apiRequest(`${endpoint}/${id}`);
     },
@@ -94,50 +97,52 @@ function createEntityAPI(entityName) {
 // Export base44-compatible API client
 export const base44 = {
   entities: {
-    Tire: createEntityAPI('tire'),
-    TireSet: createEntityAPI('tireset'),
-    Customer: createEntityAPI('customer'),
-    CustomerTireSet: createEntityAPI('customertireset'),
-    SalesOrder: createEntityAPI('salesorder'),
-    User: createEntityAPI('user'),
-    WarehousePosition: createEntityAPI('warehouseposition'),
+    Tire: createEntityAPI('Tire'),
+    TireSet: createEntityAPI('TireSet'),
+    Customer: createEntityAPI('Customer'),
+    CustomerTireSet: createEntityAPI('CustomerTireSet'),
+    SalesOrder: createEntityAPI('SalesOrder'),
+    User: createEntityAPI('User'),
+    WarehousePosition: createEntityAPI('WarehousePosition'),
+    SystemSettings: createEntityAPI('SystemSettings'),
   },
 
   auth: {
-    async login(email, password) {
-      const response = await apiRequest('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
+    // Get current user info and API key
+    async me() {
+      const response = await fetch('https://app.base44.com/api/user/me', {
+        headers: {
+          'api_key': getApiKey(),
+          'Content-Type': 'application/json',
+        },
       });
-      if (response.token) {
-        localStorage.setItem('token', response.token);
+      if (!response.ok) {
+        throw new Error('Failed to get user info');
       }
-      return response;
+      const user = await response.json();
+      // Store API key if provided
+      if (user.api_key) {
+        localStorage.setItem('base44_api_key', user.api_key);
+      }
+      return user;
     },
 
+    // Login (base44 uses API keys, so this stores the key)
+    async login(apiKey) {
+      localStorage.setItem('base44_api_key', apiKey);
+      // Verify the API key works
+      return this.me();
+    },
+
+    // Logout
     async logout() {
-      localStorage.removeItem('token');
+      localStorage.removeItem('base44_api_key');
       window.location.href = '/login';
     },
 
-    async me() {
-      return apiRequest('/auth/me');
-    },
-
-    async register(data) {
-      return apiRequest('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-    },
-  },
-
-  users: {
-    async inviteUser(email, role) {
-      return apiRequest('/users/invite', {
-        method: 'POST',
-        body: JSON.stringify({ email, role }),
-      });
+    // Check if user is authenticated
+    isAuthenticated() {
+      return !!getApiKey();
     },
   },
 };
