@@ -15,6 +15,11 @@ import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import InventoryDetail from './pages/InventoryDetail';
 import CreateInventoryItem from './pages/CreateInventoryItem';
+import Customers from './pages/Customers';
+import TireSets from './pages/TireSets';
+import TireHotel from './pages/TireHotel';
+import Sales from './pages/Sales';
+import Settings from './pages/Settings';
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -45,8 +50,11 @@ function App() {
         <Route path="inventory" element={<Inventory />} />
         <Route path="inventory/create" element={<CreateInventoryItem />} />
         <Route path="inventory/:id" element={<InventoryDetail />} />
-
-        {/* More routes will be added here */}
+        <Route path="customers" element={<Customers />} />
+        <Route path="tire-sets" element={<TireSets />} />
+        <Route path="tire-hotel" element={<TireHotel />} />
+        <Route path="sales" element={<Sales />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* 404 */}
