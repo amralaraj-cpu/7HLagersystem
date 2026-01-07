@@ -1,208 +1,66 @@
-# 🚀 7HLager - Quick Start Guide
+# 🎉 7HLager - Quick Start Guide
 
-## ✅ Application is Running!
-
-Your 7HLager inventory management system is now running and ready to test!
+Your tire inventory system is **ready to use** on laptop and mobile!
 
 ---
 
-## 🌐 Access the Application
+## 🚀 Deploy in 3 Minutes
 
-### Frontend (User Interface)
-**URL:** http://localhost:3000
-
-Click the link above or open it in your browser to access the application.
-
-### Backend API
-**URL:** http://localhost:5000/api
-**Health Check:** http://localhost:5000/health
-
----
-
-## 🔐 Login Credentials
-
-### Administrator Account (Full Access)
-- **Email:** `admin@sjuharads.se`
-- **Password:** `Admin123!`
-- **Can:** Add/edit/delete inventory, create sales, manage users, access all features
-
-### Regular User Account (Limited Access)
-- **Email:** `user@sjuharads.se`
-- **Password:** `User123!`
-- **Can:** View inventory, manage tire hotel check-in/out
-
----
-
-## 📊 What You Can Test
-
-### Dashboard
-- View warehouse statistics (36,400 total positions)
-- See sales inventory vs customer storage breakdown
-- Check occupancy rates
-
-### Inventory Management
-- Browse inventory items
-- Search by brand, dimension, location code
-- **Admin only:** Add new inventory items
-- View item details
-
-### Warehouse Locations
-- 18,200 sales inventory positions (A-N-U-P format)
-- 18,200 customer storage positions (C-A-N-U-P format)
-- Location validation and availability checking
-
----
-
-## 📝 Test Scenarios
-
-### 1. Login as Administrator
-```
-1. Go to http://localhost:3000
-2. Login with: admin@sjuharads.se / Admin123!
-3. View the dashboard
-4. Navigate to "Lager" (Inventory)
-5. Try searching for items
+### Windows Users:
+```powershell
+cd frontend
+.\deploy.ps1
 ```
 
-### 2. View Warehouse Statistics
-```
-1. Check dashboard for:
-   - Total capacity: 36,400 positions
-   - Current occupancy
-   - Sales vs Customer storage split
-```
-
-### 3. Test User Roles
-```
-1. Login as admin - see "Försäljning" and "Däckhotell" links
-2. Logout
-3. Login as user@sjuharads.se - limited menu options
-```
-
----
-
-## 🛠️ Control the Application
-
-### View Server Logs
+### Mac/Linux Users:
 ```bash
-# Backend logs
-tail -f backend.log
-
-# Frontend logs
-tail -f frontend.log
-
-# Both together
-tail -f backend.log frontend.log
+cd frontend
+./deploy.sh
 ```
 
-### Stop the Servers
-```bash
-killall node
-```
+**Choose option 1** (Vercel - Recommended) and follow the prompts.
 
-### Restart the Servers
-```bash
-bash start.sh
-```
-
-### Reset Database
-```bash
-cd backend
-node database/migrate.js
-node database/seed.js
-```
+You'll get a URL like: `https://7hlager-xxxxx.vercel.app`
 
 ---
 
-## 📁 Database Information
+## 📱 Install on Your Phone
 
-**Database:** `hlager`
-**User:** `hlager_user`
-**Password:** `hlager123`
-**Host:** `localhost:5432`
+### iPhone/iPad:
+1. Open the URL in **Safari** (must be Safari!)
+2. Tap the **Share** button (square with arrow)
+3. Scroll down and tap **"Add to Home Screen"**
+4. Tap **"Add"**
+5. ✅ App icon appears on your home screen!
 
-**Tables Created:**
-- `users` (2 demo users)
-- `warehouse_locations` (36,400 positions)
-- `inventory_items` (empty - ready for testing)
-- `sets`, `customers`, `tire_hotel_storage`
-- `sales_orders`, `invoices`, `audit_logs`
-
----
-
-## 🎯 Next Steps
-
-The application is running with core features:
-- ✅ User authentication
-- ✅ Dashboard with statistics
-- ✅ Warehouse location system
-- ✅ Basic inventory management
-- ✅ Role-based access control
-
-**Ready for Phase 2 features:**
-- SET system (group tires together)
-- Customer database & tire hotel
-- Sales orders & invoicing
-- QR code generation/scanning
-- Advanced search & filtering
-- Multi-language support
+### Android:
+1. Open the URL in **Chrome** (must be Chrome!)
+2. Tap the **Menu** button (⋮)
+3. Tap **"Add to Home screen"** or **"Install app"**
+4. Tap **"Add"** or **"Install"**
+5. ✅ App icon appears on your home screen!
 
 ---
 
-## ⚙️ Environment
+## 💻 Use on Your Laptop
 
-**Backend:** Node.js + Express.js + PostgreSQL
-**Frontend:** React 18 + Vite + Tailwind CSS
-**Database:** PostgreSQL 16
+### Option 1: Install as Desktop App (Recommended)
+1. Open the URL in Chrome or Edge
+2. Click the **install icon** (⊕) in the address bar
+3. Click **"Install"**
+4. ✅ App opens in its own window!
 
-**Ports:**
-- Frontend: 3000
-- Backend: 5000
-- Database: 5432
-
----
-
-## 🆘 Troubleshooting
-
-### Application not loading?
-```bash
-# Check if servers are running
-ps aux | grep node
-
-# Check logs for errors
-cat backend.log frontend.log
-```
-
-### Database connection error?
-```bash
-# Restart PostgreSQL
-service postgresql restart
-
-# Re-run migration
-cd backend && node database/migrate.js
-```
-
-### Port already in use?
-```bash
-# Kill processes on ports
-lsof -ti:3000 | xargs kill -9
-lsof -ti:5000 | xargs kill -9
-
-# Restart
-bash start.sh
-```
+### Option 2: Use in Browser
+Just open the URL in any modern browser
 
 ---
 
-## 📧 Support
+## 🔑 Login
 
-For questions or issues:
-- Check logs: `backend.log` and `frontend.log`
-- Review README.md for detailed setup
-- Check GitHub repository for documentation
+Development API Key: `af4ff83bf4ef4e13beaf80f03873e8b1`
+
+(shown on the login page)
 
 ---
 
-**Happy Testing! 🎉**
-
-The 7HLager inventory management system is ready for you to explore!
+**Enjoy your professional tire inventory system!** 🚗💨
