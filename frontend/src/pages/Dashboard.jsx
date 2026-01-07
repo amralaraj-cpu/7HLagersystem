@@ -69,29 +69,30 @@ const Dashboard = () => {
             value={stats.totalTires}
             icon={Package}
             trend="+12%"
+            trendUp={true}
             iconColor="text-blue-600"
-            iconBgColor="bg-blue-100"
+            iconBg="bg-blue-100"
           />
           <StatCard
             title={t('tiresInStock')}
             value={stats.tiresInStock}
             icon={TrendingUp}
             iconColor="text-green-600"
-            iconBgColor="bg-green-100"
+            iconBg="bg-green-100"
           />
           <StatCard
             title={t('customers')}
             value={stats.totalCustomers}
             icon={Users}
             iconColor="text-purple-600"
-            iconBgColor="bg-purple-100"
+            iconBg="bg-purple-100"
           />
           <StatCard
             title={t('totalSets')}
             value={stats.totalSets}
             icon={Hotel}
             iconColor="text-orange-600"
-            iconBgColor="bg-orange-100"
+            iconBg="bg-orange-100"
           />
         </div>
       )}
