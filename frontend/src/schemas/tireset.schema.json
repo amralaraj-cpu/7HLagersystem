@@ -1,0 +1,79 @@
+{
+  "name": "TireSet",
+  "type": "object",
+  "properties": {
+    "set_number": {
+      "type": "string",
+      "description": "Set ID e.g. SET-0001"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "tire_dimension": {
+      "type": "string"
+    },
+    "season": {
+      "type": "string",
+      "enum": [
+        "summer",
+        "winter",
+        "all_season",
+        "ms"
+      ]
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "new",
+        "used_excellent",
+        "used_good",
+        "used_fair",
+        "used_poor"
+      ]
+    },
+    "total_tires": {
+      "type": "number",
+      "description": "Total number of tires in set"
+    },
+    "available_tires": {
+      "type": "number",
+      "description": "Number of tires still available"
+    },
+    "purchase_price_per_tire": {
+      "type": "number"
+    },
+    "selling_price_per_tire": {
+      "type": "number"
+    },
+    "total_purchase_value": {
+      "type": "number"
+    },
+    "total_selling_value": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "partial",
+        "sold"
+      ],
+      "default": "complete"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "blocket_listed": {
+      "type": "boolean",
+      "default": false
+    },
+    "blocket_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "set_number",
+    "brand",
+    "total_tires"
+  ]
+}
