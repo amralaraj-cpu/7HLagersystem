@@ -1,0 +1,93 @@
+{
+  "name": "Customer",
+  "type": "object",
+  "properties": {
+    "customer_number": {
+      "type": "string",
+      "description": "Auto-generated customer number"
+    },
+    "customer_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "company"
+      ],
+      "default": "individual"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "contact_person_name": {
+      "type": "string",
+      "description": "Contact person name for companies"
+    },
+    "org_number": {
+      "type": "string",
+      "description": "Organization number for companies"
+    },
+    "personal_number": {
+      "type": "string",
+      "description": "Swedish personal number"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "postal_code": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "vehicles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "registration_number": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "year": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "total_stored_sets": {
+      "type": "number",
+      "default": 0
+    },
+    "balance_due": {
+      "type": "number",
+      "default": 0,
+      "description": "Outstanding balance in SEK"
+    }
+  },
+  "required": [
+    "customer_type"
+  ]
+}
